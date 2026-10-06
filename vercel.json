@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/send-brief.js": {
+      "maxDuration": 10
+    }
+  }
+}
