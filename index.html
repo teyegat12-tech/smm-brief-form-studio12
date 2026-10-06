@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Бриф Студии 12</title>
+<style>
+  :root{
+    --bg:#FAF9F3; --surface:#FFFFFF; --surface-2:#F5F5EE;
+    --ink:#11120F; --ink-muted:#65665E; --ink-faint:#97988F;
+    --accent:#B7FF12; --accent-soft:#EEFFD0; --accent-ink:#11120F;
+    --line:#E0E0D7; --line-strong:#BDBEB4;
+    --flag:#11120F; --flag-soft:#EEFFD0;
+    --radius:6px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  button{font-family:'Unbounded','Inter',sans-serif; font-weight:800; letter-spacing:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    padding:0 16px;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding-bottom:64px;}
+
+  h1,h2,h3{font-family:'Unbounded','Inter',sans-serif; font-weight:800; text-wrap:balance; margin:0; letter-spacing:0;}
+
+  .topbar{
+    position:sticky; top:0; z-index:10;
+    background:rgba(250,249,243,.96); border-bottom:1px solid var(--line);
+    padding:18px 0 14px;
+  }
+  .topbar-inner{max-width:720px; margin:0 auto; padding:0 16px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; min-height:22px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0;
+    text-transform:uppercase; color:var(--ink); background:var(--accent); margin-bottom:6px; padding:3px 7px;
+  }
+  .topbar h1{font-size:22px; font-weight:700; line-height:1.05;}
+  .step-count{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-muted);}
+  .progress-row{display:flex; align-items:center; gap:10px; margin-top:10px;}
+  .progress-track{flex:1; height:6px; border-radius:0; background:#E9E9E0; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .3s ease;}
+
+  .intro{margin-top:14px; font-size:14px; color:var(--ink-muted); line-height:1.5;}
+  .draft-banner{
+    display:flex; justify-content:space-between; align-items:center; gap:20px;
+    background:var(--surface); border:1px dashed var(--ink); border-radius:var(--radius);
+    padding:16px 18px; margin-top:16px; color:var(--ink);
+  }
+  .draft-copy{display:flex; align-items:flex-start; gap:11px; min-width:0;}
+  .draft-marker{
+    flex:0 0 auto; width:9px; height:9px; margin-top:6px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 0 4px rgba(183,255,18,.16);
+  }
+  .draft-title{display:block; font-size:14px; font-weight:700; line-height:1.35;}
+  .draft-note{display:block; margin-top:3px; font-size:12px; line-height:1.45; color:var(--ink-muted);}
+  .draft-banner button{
+    flex:0 0 auto; min-height:42px; padding:10px 15px; border:1px solid var(--ink); border-radius:4px;
+    background:var(--ink); color:#FFFFFF; font-weight:800; cursor:pointer; font-size:12px;
+    box-shadow:0 5px 14px rgba(17,18,15,.12); transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease;
+  }
+  .draft-banner button:hover{background:#303128; transform:translateY(-1px); box-shadow:0 7px 16px rgba(17,18,15,.15);}
+  .draft-banner button:active{transform:translateY(1px); box-shadow:0 2px 7px rgba(17,18,15,.12);}
+  .draft-banner button:focus-visible{outline:3px solid rgba(134,182,44,.4); outline-offset:3px;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:30px; margin-top:22px; box-shadow:0 12px 30px rgba(17,18,15,.045);
+    position:relative; overflow:hidden;
+  }
+  .card::before{content:""; position:absolute; inset:0 auto auto 0; width:5px; height:72px; background:var(--accent);}
+  .step-head{margin-bottom:6px;}
+  .step-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-muted); margin-bottom:8px; text-transform:uppercase;}
+  .step-head h2{font-size:27px; font-weight:700; line-height:1.05;}
+  .step-subtitle{font-size:14px; color:var(--ink-muted); margin-top:10px; line-height:1.5;}
+  .skip-hint{font-size:12px; color:var(--ink-faint); margin-top:6px; font-style:italic;}
+
+  .field{margin-top:18px;}
+  .field:first-of-type{margin-top:0;}
+  label.flabel{display:block; font-size:14px; font-weight:500; margin-bottom:7px; color:var(--ink);}
+
+  input[type=text], textarea{
+    width:100%; font-family:Menlo,Monaco,'Courier New',monospace; font-size:15px; line-height:1.6; color:#373830;
+    background:#F3F2EE; border:1px solid #D9D8D1; border-radius:6px;
+    padding:12px 13px; resize:vertical; transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+  }
+  input[type=text]:focus, textarea:focus{outline:none; border-color:#A6C96A; background:#F9FDEB; box-shadow:0 0 0 3px rgba(183,255,18,.14);}
+  input[type=text].is-filled, textarea.is-filled{background:#F3FBDD; border-color:#B8D77F;}
+  input[type=text].is-filled:focus, textarea.is-filled:focus{background:#F1FAD7; border-color:#93BB4E;}
+  input[type=text]::placeholder, textarea::placeholder{color:var(--ink-faint);}
+  textarea{min-height:60px;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-size:13px; padding:9px 13px; border-radius:4px; border:1px solid var(--line-strong);
+    background:var(--surface-2); color:var(--ink); cursor:pointer; user-select:none;
+  }
+  .chip[aria-pressed="true"]{background:var(--accent-soft); border-color:#A7CB65; color:var(--accent-ink); font-weight:600;}
+  .chip.chip-other{border-style:dashed;}
+  .chip:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .other-input{margin-top:10px;}
+
+  .gate-cards{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px;}
+  .gate-card{
+    flex:1 1 160px; text-align:left; border:1px solid var(--line-strong); border-radius:4px;
+    padding:14px; background:var(--surface-2); cursor:pointer; font-size:13px; line-height:1.4; color:var(--ink);
+  }
+  .gate-card:hover{border-color:var(--accent);}
+  .gate-card[aria-checked="true"]{border-color:#A7CB65; background:var(--accent-soft); font-weight:600;}
+
+  .delegated-note{
+    display:flex; gap:8px; align-items:flex-start;
+    background:var(--accent-soft); border:1px solid var(--ink); border-radius:4px;
+    padding:10px 12px; font-size:13px; color:var(--ink); margin:16px 0 4px;
+  }
+  [hidden]{display:none!important;}
+
+  .more-toggle{
+    margin-top:18px; width:100%; text-align:center; background:none; cursor:pointer;
+    border:1px dashed var(--line-strong); border-radius:4px; padding:11px 14px;
+    font-size:12px; color:var(--ink); font-weight:800;
+  }
+  .more-toggle:hover{background:var(--surface-2);}
+  .more-body{margin-top:6px; display:flex; flex-direction:column;}
+
+  .wizard-nav{display:flex; gap:10px; margin-top:26px; align-items:center;}
+  .wizard-nav.actions-stack{flex-direction:column; align-items:stretch;}
+  .btn{
+    font-size:12px; font-weight:800; border-radius:4px; border:1px solid transparent;
+    padding:12px 16px; cursor:pointer; text-align:center;
+  }
+  .btn-primary{background:var(--accent); color:var(--accent-ink); border-color:transparent; flex:1; box-shadow:0 7px 18px rgba(108,140,42,.2); transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease;}
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 22px rgba(108,140,42,.24);}
+  .btn-primary:active{transform:translateY(1px); box-shadow:0 3px 10px rgba(108,140,42,.18);}
+  .btn-secondary{background:transparent; color:var(--ink); border-color:var(--line-strong);}
+  .btn-secondary:hover{background:var(--surface-2);}
+  .btn-wide{width:100%;}
+  .btn:disabled{opacity:.6; cursor:default;}
+  .status-msg{font-size:12px; color:var(--ink-muted); text-align:center; margin-top:10px; min-height:14px;}
+
+  .review-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0 20px;}
+  .review-tile{background:var(--surface-2); border:1px solid var(--line); border-radius:4px; padding:14px;}
+  .review-tile b{font-family:'IBM Plex Mono',monospace; font-size:20px; display:block;}
+  .review-tile span{font-size:12px; color:var(--ink-muted);}
+  .review-note{font-size:13px; color:var(--ink-muted); line-height:1.5; margin-bottom:6px;}
+
+  @media(max-width:480px){
+    body{padding:0 12px;}
+    .card{padding:22px 18px;}
+    .topbar h1{font-size:18px;}
+    .step-head h2{font-size:23px;}
+    .review-stats{grid-template-columns:1fr;}
+    .draft-banner{align-items:stretch; flex-direction:column; gap:14px; padding:15px;}
+    .draft-banner button{width:100%;}
+  }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="eyebrow">Студия 12</div>
+    <h1>Бриф для нового проекта</h1>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="step-count" id="stepCount">1 / 14</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="intro" id="draftIntro">Отвечайте только на то, что важно именно вам — остальное можно пропустить, мы уточним на созвоне. Обычно это занимает 3–5 минут.</p>
+  <div class="draft-banner" id="draftBanner" role="status" hidden>
+    <div class="draft-copy">
+      <span class="draft-marker" aria-hidden="true"></span>
+      <span>
+        <strong class="draft-title">Мы восстановили ваш прошлый черновик</strong>
+        <span class="draft-note">Можно продолжить заполнение или удалить ответы и создать новый бриф.</span>
+      </span>
+    </div>
+    <button type="button" id="clearDraftBtn">Очистить и начать заново</button>
+  </div>
+
+  <div id="stepHost"></div>
+</div>
+
+<div class="status-msg" id="statusMsg"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Публичная страница отправляет бриф через защищённую серверную функцию.
+  var BRIEF_API_URL = "https://smm-brief-form-studio12-api.vercel.app/api/send-brief";
+  var STUDIO_TG_USERNAME = "nadenka_nadushca"; // запасной вариант, если авто-отправка не сработает
+  var DRAFT_KEY = "studio12_brief_draft_v2";
+
+  // ---- data model -------------------------------------------------
+  // field types: text, textarea, chips (multi), chips-single
+  var STEPS = [
+    { id:"proj", title:"Проект и контакты",
+      subtitle:"Основное — чтобы мы могли с вами связаться и понимать контекст.",
+      essential:[
+        { id:"proj_name", label:"Название проекта или бренда", type:"text", placeholder:"например, «Кофейня Заря»" },
+        { id:"proj_contact", label:"Как с вами удобно связаться", type:"text", placeholder:"телефон, Telegram или email" }
+      ],
+      more:[
+        { id:"proj_field", label:"Сфера деятельности", type:"chips", allowOther:true, options:["услуги","товары","обучение","личный бренд","общепит","красота и здоровье"] },
+        { id:"proj_links", label:"Сайт или соцсети", type:"text", placeholder:"ссылка" },
+        { id:"proj_decider", label:"Кто принимает финальные решения", type:"text" },
+        { id:"proj_provider", label:"Кто будет присылать материалы и утверждать посты", type:"text" }
+      ]
+    },
+    { id:"goals", title:"Цели работы",
+      subtitle:"Если пока сложно сформулировать — доверьте это нам, разберёмся на созвоне.",
+      gate:{ id:"goals_gate", q:"Насколько цели уже сформулированы", opts:[
+        {v:"self", l:"уже сформулированы — отвечу сам"},
+        {v:"draft", l:"есть черновик, нужно доработать"},
+        {v:"studio", l:"хочу, чтобы Студия помогла сформулировать цели"}
+      ]},
+      essential:[
+        { id:"goals_want", label:"Что важнее всего получить от SMM", type:"chips", allowOther:true, options:["узнаваемость","заявки","продажи","доверие","экспертность","прогрев аудитории"] }
+      ],
+      more:[
+        { id:"goals_priority", label:"Что нужно решить в первую очередь", type:"textarea" },
+        { id:"goals_pain", label:"Что сейчас не устраивает", type:"textarea" },
+        { id:"goals_success", label:"Как вы поймёте, что работа дала результат", type:"textarea" }
+      ]
+    },
+    { id:"product", title:"Продукт или услуга",
+      subtitle:"Только суть — детали можно оставить нам.",
+      gate:{ id:"product_gate", q:"Насколько информация о продукте уже готова", opts:[
+        {v:"self", l:"уже готова — отвечу сам"},
+        {v:"draft", l:"есть черновик, нужно доработать"},
+        {v:"studio", l:"хочу, чтобы Студия помогла описать продукт"}
+      ]},
+      essential:[
+        { id:"product_what", label:"Что вы продаёте или продвигаете", type:"textarea", placeholder:"в двух словах" }
+      ],
+      more:[
+        { id:"product_forwhom", label:"Для кого это", type:"textarea" },
+        { id:"product_value", label:"В чём главная ценность продукта или услуги", type:"textarea" },
+        { id:"product_why", label:"Почему клиент выбирает вас", type:"textarea" },
+        { id:"product_strengths", label:"Какие есть сильные стороны", type:"textarea" },
+        { id:"product_weak", label:"Какие есть слабые места или ограничения", type:"textarea" },
+        { id:"product_notpromise", label:"Что важно не обещать", type:"textarea" },
+        { id:"product_season", label:"Есть ли сезонность, сроки, акции, запуски", type:"textarea" }
+      ]
+    },
+    { id:"aud", title:"Аудитория",
+      subtitle:"Общего описания достаточно — можно без деталей.",
+      gate:{ id:"aud_gate", q:"Насколько аудитория уже описана", opts:[
+        {v:"self", l:"уже описана — отвечу сам"},
+        {v:"draft", l:"есть черновое понимание"},
+        {v:"studio", l:"хочу, чтобы Студия исследовала и описала аудиторию"}
+      ]},
+      essential:[
+        { id:"aud_who", label:"Кто ваша основная аудитория", type:"textarea", placeholder:"например: женщины 25–40, интересуются здоровым образом жизни" }
+      ],
+      more:[
+        { id:"aud_needs", label:"Потребности, боли, сомнения и желания аудитории", type:"textarea" },
+        { id:"aud_knows", label:"Что аудитория уже знает о продукте", type:"textarea" },
+        { id:"aud_explain", label:"Что аудитории нужно объяснить", type:"textarea" },
+        { id:"aud_objections", label:"Какие возражения чаще всего возникают", type:"textarea" }
+      ]
+    },
+    { id:"comp", title:"Конкуренты и ориентиры",
+      subtitle:"Этот раздел можно смело пропустить, если пока не думали об этом.",
+      gate:{ id:"comp_gate", q:"Насколько конкуренты уже известны", opts:[
+        {v:"self", l:"уже известны — отвечу сам"},
+        {v:"draft", l:"есть частичный список"},
+        {v:"studio", l:"хочу, чтобы Студия провела базовый анализ конкурентов"}
+      ]},
+      essential:[],
+      more:[
+        { id:"comp_list", label:"Прямые и косвенные конкуренты", type:"textarea" },
+        { id:"comp_like", label:"Кто вам нравится по контенту", type:"textarea" },
+        { id:"comp_dislike", label:"Кто не нравится и почему", type:"textarea" },
+        { id:"comp_avoid", label:"Что точно не хочется повторять", type:"textarea" }
+      ]
+    },
+    { id:"plat", title:"Площадки и форматы",
+      subtitle:"Выберите чипсами — можно несколько.",
+      essential:[
+        { id:"plat_where", label:"Где нужно вести контент", type:"chips", options:["Instagram","Telegram","VK","сайт / блог","другое"] },
+        { id:"plat_formats", label:"Какие форматы нужны", type:"chips", options:["посты","сторис","карусели","короткие видео","статьи"] }
+      ],
+      more:[
+        { id:"plat_active", label:"Какие площадки уже активны", type:"text" },
+        { id:"plat_fromzero", label:"Где нужно начать с нуля", type:"text" }
+      ]
+    },
+    { id:"content", title:"Контент и темы",
+      subtitle:"Если тем пока нет — поручите нам, придумаем рубрикатор.",
+      gate:{ id:"content_gate", q:"Насколько темы и рубрики готовы", opts:[
+        {v:"self", l:"уже готовы — отвечу сам"},
+        {v:"draft", l:"есть черновые идеи"},
+        {v:"studio", l:"хочу, чтобы Студия предложила темы и рубрики"}
+      ]},
+      essential:[
+        { id:"content_musthave", label:"О чём точно нужно рассказывать", type:"textarea" }
+      ],
+      more:[
+        { id:"content_biz", label:"Какие темы важны для бизнеса", type:"textarea" },
+        { id:"content_aud", label:"Какие темы важны для аудитории", type:"textarea" },
+        { id:"content_forbidden", label:"Какие темы нельзя затрагивать", type:"textarea" },
+        { id:"content_faq", label:"Какие вопросы клиенты задают чаще всего", type:"textarea" },
+        { id:"content_rubrics", label:"Есть ли уже готовые рубрики", type:"textarea" }
+      ]
+    },
+    { id:"tov", title:"Tone of Voice",
+      subtitle:"Пара чипсов — и мы уже почувствуем интонацию бренда.",
+      essential:[
+        { id:"tov_voice", label:"Каким должен быть голос бренда", type:"chips", options:["спокойный","экспертный","дружелюбный","простой","дерзкий","вдохновляющий","официальный","тёплый"] },
+        { id:"tov_humor", label:"Можно ли использовать юмор", type:"chips-single", options:["да","нет"] }
+      ],
+      more:[
+        { id:"tov_avoid", label:"Как бренд не должен звучать", type:"textarea" },
+        { id:"tov_forbidden_words", label:"Какие слова, фразы и формулировки нельзя использовать", type:"textarea" },
+        { id:"tov_examples", label:"Примеры текстов, которые нравятся или не нравятся", type:"textarea" }
+      ]
+    },
+    { id:"visual", title:"Визуальный стиль",
+      subtitle:"Если стиля ещё нет — так и отметьте, разработаем направление.",
+      gate:{ id:"visual_gate", q:"Насколько визуальный стиль готов", opts:[
+        {v:"self", l:"уже готов — отвечу сам"},
+        {v:"draft", l:"есть отдельные элементы"},
+        {v:"studio", l:"хочу, чтобы Студия разработала визуальное направление"}
+      ]},
+      essential:[
+        { id:"visual_brandbook", label:"Есть ли брендбук или визуальные правила", type:"chips-single", options:["да","нет"] },
+        { id:"visual_need", label:"Что нужно в визуальном направлении", type:"chips", options:["иллюстрации","дизайн карточек","карусели","обложки"] }
+      ],
+      more:[
+        { id:"visual_colors", label:"Какие цвета, шрифты и элементы уже используются", type:"textarea" },
+        { id:"visual_like", label:"Какие визуалы нравятся", type:"textarea" },
+        { id:"visual_dislike", label:"Какие визуалы не нравятся", type:"textarea" }
+      ]
+    },
+    { id:"materials", title:"Материалы клиента",
+      subtitle:"Если материалов пока нет — переходите дальше, пришлёте позже.",
+      essential:[],
+      more:[
+        { id:"materials_have", label:"Какие материалы уже есть", type:"textarea" },
+        { id:"materials_links", label:"Ссылки на материалы", type:"textarea" },
+        { id:"materials_canuse", label:"Что можно использовать", type:"textarea" },
+        { id:"materials_cantuse", label:"Что нельзя использовать", type:"textarea" },
+        { id:"materials_hide", label:"Нужно ли скрывать личные данные, цены, имена или внутренние материалы", type:"textarea" }
+      ]
+    },
+    { id:"restrict", title:"Ограничения и запреты",
+      subtitle:"Главное — что точно нельзя. Остальное можно пропустить.",
+      essential:[
+        { id:"restrict_cantwrite", label:"Что точно нельзя", type:"chips", allowOther:true, options:["упоминать конкурентов","обещать быстрые результаты","нецензурная лексика","публиковать без согласования"] }
+      ],
+      more:[
+        { id:"restrict_cantshow", label:"Что нельзя показывать", type:"textarea" },
+        { id:"restrict_sensitive", label:"Какие темы чувствительные", type:"textarea" },
+        { id:"restrict_approve", label:"Какие утверждения нужно согласовывать отдельно", type:"textarea" },
+        { id:"restrict_factchecker", label:"Кто проверяет факты", type:"text" }
+      ]
+    },
+    { id:"delegate", title:"Что нужно поручить Студии",
+      subtitle:"Отметьте чипсами всё, что хотите переложить на нас.",
+      essential:[
+        { id:"delegate_tasks", label:"Что нужно сделать", type:"chips", options:["аудит текущего контента","анализ аудитории","анализ конкурентов","позиционирование","Tone of Voice","визуальное направление","рубрикатор"] }
+      ],
+      more:[
+        { id:"delegate_client", label:"Что клиент готовит сам", type:"textarea" },
+        { id:"delegate_together", label:"Что нужно разработать совместно", type:"textarea" },
+        { id:"delegate_studio", label:"Что полностью поручается Студии", type:"textarea" }
+      ]
+    },
+    { id:"priority", title:"Приоритеты и сроки",
+      subtitle:"Примерно — этого достаточно, чтобы начать планировать.",
+      essential:[
+        { id:"priority_first", label:"Что нужно сделать первым", type:"text" },
+        { id:"priority_count", label:"Сколько публикаций нужно примерно", type:"text" }
+      ],
+      more:[
+        { id:"priority_deadlines", label:"Дедлайны, даты запусков, мероприятий или акций", type:"textarea" },
+        { id:"priority_period", label:"На какой период нужен контент", type:"text" },
+        { id:"priority_frequency", label:"Как часто удобно согласовывать материалы", type:"text" },
+        { id:"priority_contact", label:"Кто будет быстро отвечать на вопросы", type:"text" }
+      ]
+    },
+    { id:"final", title:"Финальный комментарий",
+      subtitle:"Необязательно — только если есть что добавить.",
+      essential:[
+        { id:"final_comment", label:"Дополнительные пожелания, ссылки, мысли или вопросы", type:"textarea" }
+      ],
+      more:[]
+    }
+  ];
+
+  // ---- central state -------------------------------------------------
+  var state = {};   // fieldId -> string | array
+  var otherOn = {};  // fieldId -> bool, whether "свой вариант" input is open
+  var currentStep = 0;
+  var moreOpen = {}; // sectionId -> bool
+
+  function getGateValue(sec){ return state[sec.gate.id] || null; }
+
+  function allFieldsOf(sec){ return (sec.essential||[]).concat(sec.more||[]); }
+
+  // ---- field rendering -------------------------------------------------
+  function syncFilledState(control){
+    control.classList.toggle("is-filled", control.value.trim().length > 0);
+  }
+
+  function makeField(f){
+    var wrap = document.createElement("div"); wrap.className = "field";
+    var label = document.createElement("label"); label.className = "flabel"; label.htmlFor = f.id; label.textContent = f.label;
+    wrap.appendChild(label);
+
+    if(f.type === "text"){
+      var inp = document.createElement("input"); inp.type = "text"; inp.id = f.id;
+      if(f.placeholder) inp.placeholder = f.placeholder;
+      inp.value = typeof state[f.id] === "string" ? state[f.id] : "";
+      syncFilledState(inp);
+      inp.addEventListener("input", function(){ state[f.id] = inp.value; syncFilledState(inp); saveDraft(); });
+      wrap.appendChild(inp);
+    } else if(f.type === "textarea"){
+      var ta = document.createElement("textarea"); ta.id = f.id;
+      if(f.placeholder) ta.placeholder = f.placeholder;
+      ta.value = typeof state[f.id] === "string" ? state[f.id] : "";
+      syncFilledState(ta);
+      ta.addEventListener("input", function(){ state[f.id] = ta.value; syncFilledState(ta); saveDraft(); });
+      wrap.appendChild(ta);
+    } else if(f.type === "chips" || f.type === "chips-single"){
+      var single = f.type === "chips-single";
+      var current = state[f.id];
+      if(!Array.isArray(current)) current = current ? [current] : [];
+      var chips = document.createElement("div"); chips.className = "chips"; chips.id = f.id;
+
+      function renderChips(){
+        chips.innerHTML = "";
+        f.options.forEach(function(opt){
+          var chip = document.createElement("button");
+          chip.type = "button"; chip.className = "chip"; chip.textContent = opt;
+          var pressed = current.indexOf(opt) > -1;
+          chip.setAttribute("aria-pressed", pressed ? "true" : "false");
+          chip.addEventListener("click", function(){
+            if(single){
+              current = [opt];
+            } else {
+              var i = current.indexOf(opt);
+              if(i > -1) current.splice(i,1); else current.push(opt);
+            }
+            state[f.id] = single ? (current[0]||"") : current.slice();
+            renderChips();
+            saveDraft();
+          });
+          chips.appendChild(chip);
+        });
+        if(f.allowOther){
+          var otherChip = document.createElement("button");
+          otherChip.type = "button"; otherChip.className = "chip chip-other"; otherChip.textContent = "+ свой вариант";
+          otherChip.setAttribute("aria-pressed", otherOn[f.id] ? "true" : "false");
+          otherChip.addEventListener("click", function(){
+            otherOn[f.id] = !otherOn[f.id];
+            renderChips();
+            var oi = document.getElementById(f.id + "_other_input");
+            if(oi) oi.focus();
+          });
+          chips.appendChild(otherChip);
+        }
+      }
+      renderChips();
+      wrap.appendChild(chips);
+
+      if(f.allowOther){
+        var otherWrap = document.createElement("div"); otherWrap.className = "other-input";
+        otherWrap.hidden = !otherOn[f.id];
+        var otherInp = document.createElement("input"); otherInp.type = "text"; otherInp.id = f.id + "_other_input";
+        otherInp.placeholder = "свой вариант";
+        otherInp.value = state[f.id + "__other"] || "";
+        syncFilledState(otherInp);
+        otherInp.addEventListener("input", function(){ state[f.id + "__other"] = otherInp.value; syncFilledState(otherInp); saveDraft(); });
+        otherWrap.appendChild(otherInp);
+        wrap.appendChild(otherWrap);
+        var _origRender = renderChips;
+        renderChips = function(){ _origRender(); otherWrap.hidden = !otherOn[f.id]; };
+      }
+    }
+    return wrap;
+  }
+
+  function chipsCombinedValue(f){
+    var arr = Array.isArray(state[f.id]) ? state[f.id].slice() : (state[f.id] ? [state[f.id]] : []);
+    var other = (state[f.id + "__other"] || "").trim();
+    if(other) arr.push(other);
+    return arr;
+  }
+
+  // ---- step rendering -------------------------------------------------
+  var host = document.getElementById("stepHost");
+  var progressFill = document.getElementById("progressFill");
+  var stepCount = document.getElementById("stepCount");
+
+  function renderStep(){
+    host.innerHTML = "";
+    if(currentStep >= STEPS.length){ renderReview(); return; }
+    var sec = STEPS[currentStep];
+    progressFill.style.width = Math.round((currentStep/STEPS.length)*100) + "%";
+    stepCount.textContent = (currentStep+1) + " / " + STEPS.length;
+
+    var card = document.createElement("div"); card.className = "card";
+
+    var head = document.createElement("div"); head.className = "step-head";
+    var eyebrow = document.createElement("div"); eyebrow.className = "step-eyebrow"; eyebrow.textContent = "Раздел " + (currentStep+1);
+    var h2 = document.createElement("h2"); h2.textContent = sec.title;
+    head.appendChild(eyebrow); head.appendChild(h2);
+    if(sec.subtitle){
+      var sub = document.createElement("p"); sub.className = "step-subtitle"; sub.textContent = sec.subtitle;
+      head.appendChild(sub);
+    }
+    card.appendChild(head);
+
+    var essentialWrap = document.createElement("div");
+    var moreWrap = document.createElement("div");
+    var noteWrap = document.createElement("div"); noteWrap.hidden = true;
+
+    function buildEssentialAndMore(){
+      essentialWrap.innerHTML = "";
+      moreWrap.innerHTML = "";
+      (sec.essential||[]).forEach(function(f){ essentialWrap.appendChild(makeField(f)); });
+      if(sec.more && sec.more.length){
+        var toggle = document.createElement("button");
+        toggle.type = "button"; toggle.className = "more-toggle";
+        var body = document.createElement("div"); body.className = "more-body"; body.hidden = !moreOpen[sec.id];
+        sec.more.forEach(function(f){ body.appendChild(makeField(f)); });
+        function updateToggleLabel(){
+          toggle.textContent = moreOpen[sec.id] ? "Скрыть" : "Показать ещё вопросы (необязательно)";
+        }
+        updateToggleLabel();
+        toggle.addEventListener("click", function(){
+          moreOpen[sec.id] = !moreOpen[sec.id];
+          body.hidden = !moreOpen[sec.id];
+          updateToggleLabel();
+        });
+        moreWrap.appendChild(toggle);
+        moreWrap.appendChild(body);
+      }
+    }
+
+    if(sec.gate){
+      var gateBox = document.createElement("div"); gateBox.className = "field";
+      var gq = document.createElement("label"); gq.className = "flabel"; gq.textContent = sec.gate.q;
+      gateBox.appendChild(gq);
+      var cards = document.createElement("div"); cards.className = "gate-cards";
+      sec.gate.opts.forEach(function(o){
+        var card2 = document.createElement("button");
+        card2.type = "button"; card2.className = "gate-card"; card2.textContent = o.l;
+        card2.setAttribute("aria-checked", state[sec.gate.id] === o.v ? "true" : "false");
+        card2.addEventListener("click", function(){
+          state[sec.gate.id] = o.v;
+          saveDraft();
+          Array.prototype.forEach.call(cards.children, function(c){ c.setAttribute("aria-checked","false"); });
+          card2.setAttribute("aria-checked","true");
+          applyGateVisibility();
+        });
+        cards.appendChild(card2);
+      });
+      gateBox.appendChild(cards);
+      card.appendChild(gateBox);
+
+      var note = document.createElement("div"); note.className = "delegated-note";
+      note.innerHTML = "<span>&#10003;</span><span>Этот раздел поручается Студии. Если уже сейчас есть что-то важное — напишите ниже, это необязательно.</span>";
+      var noteFieldId = sec.id + "_note";
+      var noteFieldEl = makeField({ id: noteFieldId, label:"Есть что-то важное, что стоит знать уже сейчас?", type:"textarea" });
+      noteWrap.appendChild(note);
+      noteWrap.appendChild(noteFieldEl);
+      card.appendChild(noteWrap);
+      sec._noteFieldId = noteFieldId;
+    }
+
+    buildEssentialAndMore();
+    card.appendChild(essentialWrap);
+    card.appendChild(moreWrap);
+
+    function applyGateVisibility(){
+      var val = sec.gate ? state[sec.gate.id] : null;
+      if(sec.gate && val === "studio"){
+        essentialWrap.hidden = true; moreWrap.hidden = true; noteWrap.hidden = false;
+      } else {
+        essentialWrap.hidden = false; moreWrap.hidden = false; noteWrap.hidden = true;
+      }
+    }
+    applyGateVisibility();
+
+    if(!sec.gate && (!sec.essential || !sec.essential.length) && sec.more && sec.more.length){
+      var hint = document.createElement("p"); hint.className = "skip-hint";
+      hint.textContent = "Можно пропустить — просто нажмите «Далее».";
+      card.insertBefore(hint, essentialWrap);
+    }
+
+    var nav = document.createElement("div"); nav.className = "wizard-nav";
+    if(currentStep > 0){
+      var back = document.createElement("button"); back.type = "button"; back.className = "btn btn-secondary"; back.textContent = "Назад";
+      back.addEventListener("click", function(){ currentStep--; renderStep(); window.scrollTo(0,0); });
+      nav.appendChild(back);
+    }
+    var next = document.createElement("button"); next.type = "button"; next.className = "btn btn-primary"; next.textContent = currentStep === STEPS.length-1 ? "Проверить и отправить" : "Далее";
+    next.addEventListener("click", function(){ currentStep++; saveDraft(); renderStep(); window.scrollTo(0,0); });
+    nav.appendChild(next);
+    card.appendChild(nav);
+
+    host.appendChild(card);
+  }
+
+  // ---- review + markdown -------------------------------------------------
+  function today(){
+    var d = new Date();
+    return String(d.getDate()).padStart(2,"0") + "." + String(d.getMonth()+1).padStart(2,"0") + "." + d.getFullYear();
+  }
+
+  function fieldValue(f){
+    if(f.type === "chips" || f.type === "chips-single") return chipsCombinedValue(f);
+    return typeof state[f.id] === "string" ? state[f.id] : "";
+  }
+
+  function fmtVal(v){
+    if(Array.isArray(v)) return v.length ? v.join(", ") : "Не заполнено";
+    return v ? v : "Не заполнено";
+  }
+
+  function isAnswered(sec){
+    if(sec.gate && state[sec.gate.id]) return true;
+    var answered = false;
+    allFieldsOf(sec).forEach(function(f){
+      var v = fieldValue(f);
+      if(Array.isArray(v) ? v.length > 0 : v) answered = true;
+    });
+    return answered;
+  }
+
+  function compileMarkdown(){
+    var projectName = (state["proj_name"] || "").trim() || "Без названия";
+    var lines = [];
+    lines.push("# Бриф заказчика: " + projectName);
+    lines.push("");
+    lines.push("Дата заполнения: " + today());
+    lines.push("");
+    lines.push("Статус: заполнено заказчиком");
+    lines.push("");
+
+    STEPS.forEach(function(sec){
+      lines.push("## " + sec.title);
+      lines.push("");
+      if(sec.gate && state[sec.gate.id] === "studio"){
+        lines.push("_Делегировано Студии._");
+        var noteVal = (state[sec._noteFieldId || (sec.id+"_note")] || "").trim();
+        if(noteVal){ lines.push(""); lines.push("**Важно уже сейчас**"); lines.push(""); lines.push(noteVal); }
+        lines.push("");
+        return;
+      }
+      allFieldsOf(sec).forEach(function(f){
+        lines.push("**" + f.label + "**");
+        lines.push("");
+        lines.push(fmtVal(fieldValue(f)));
+        lines.push("");
+      });
+    });
+
+    return lines.join("\n");
+  }
+
+  function renderReview(){
+    progressFill.style.width = "100%";
+    stepCount.textContent = "Готово";
+
+    var card = document.createElement("div"); card.className = "card";
+    var head = document.createElement("div"); head.className = "step-head";
+    var eyebrow = document.createElement("div"); eyebrow.className = "step-eyebrow"; eyebrow.textContent = "Проверка";
+    var h2 = document.createElement("h2"); h2.textContent = "Всё готово";
+    head.appendChild(eyebrow); head.appendChild(h2);
+    var sub = document.createElement("p"); sub.className = "step-subtitle";
+    sub.textContent = "Можно вернуться и что-то поправить, а можно отправить как есть.";
+    head.appendChild(sub);
+    card.appendChild(head);
+
+    var answered = 0, delegated = 0;
+    STEPS.forEach(function(sec){
+      if(sec.gate && state[sec.gate.id] === "studio") delegated++;
+      else if(isAnswered(sec)) answered++;
+    });
+
+    var stats = document.createElement("div"); stats.className = "review-stats";
+    var t1 = document.createElement("div"); t1.className = "review-tile";
+    t1.innerHTML = "<b>" + answered + " / " + STEPS.length + "</b><span>разделов заполнено</span>";
+    var t2 = document.createElement("div"); t2.className = "review-tile";
+    t2.innerHTML = "<b>" + delegated + "</b><span>поручено Студии</span>";
+    stats.appendChild(t1); stats.appendChild(t2);
+    card.appendChild(stats);
+
+    var note = document.createElement("p"); note.className = "review-note";
+    note.textContent = "«Отправить бриф» пришлёт файл .md напрямую Студии 12 — заказчику ничего скачивать и прикреплять не нужно. Если по какой-то причине не получится — нажмите «Скопировать бриф» или «Скачать бриф (.md)» и отправьте вручную в Telegram @" + STUDIO_TG_USERNAME + ".";
+    card.appendChild(note);
+
+    var actions = document.createElement("div"); actions.className = "wizard-nav";
+    var back = document.createElement("button"); back.type = "button"; back.className = "btn btn-secondary"; back.textContent = "Назад";
+    back.addEventListener("click", function(){ currentStep = STEPS.length-1; renderStep(); window.scrollTo(0,0); });
+    actions.appendChild(back);
+    card.appendChild(actions);
+
+    var actions2 = document.createElement("div"); actions2.className = "wizard-nav actions-stack";
+    var send = document.createElement("button"); send.type = "button"; send.className = "btn btn-primary btn-wide"; send.textContent = "Отправить бриф";
+    send.addEventListener("click", function(){
+      if(send.dataset.sent === "true") startNewBrief();
+      else onSend(send);
+    });
+    var copy = document.createElement("button"); copy.type = "button"; copy.className = "btn btn-secondary btn-wide"; copy.textContent = "Скопировать бриф";
+    copy.addEventListener("click", onCopy);
+    var dl = document.createElement("button"); dl.type = "button"; dl.className = "btn btn-secondary btn-wide"; dl.textContent = "Скачать бриф (.md)";
+    dl.addEventListener("click", onDownload);
+    actions2.appendChild(send); actions2.appendChild(copy); actions2.appendChild(dl);
+    card.appendChild(actions2);
+
+    host.appendChild(card);
+  }
+
+  // ---- draft persistence -------------------------------------------------
+  function saveDraft(){
+    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify({ state:state, currentStep:currentStep })); }catch(e){}
+  }
+
+  function loadDraft(){
+    try{
+      var raw = localStorage.getItem(DRAFT_KEY);
+      if(!raw) return false;
+      var data = JSON.parse(raw);
+      if(data && data.state){ state = data.state; currentStep = data.currentStep || 0; return true; }
+      return false;
+    }catch(e){ return false; }
+  }
+
+  function clearDraft(){
+    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+    location.reload();
+  }
+
+  function startNewBrief(){
+    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+    state = {};
+    currentStep = 0;
+    moreOpen = {};
+    document.getElementById("draftBanner").hidden = true;
+    showStatus("", 0);
+    renderStep();
+    window.scrollTo(0,0);
+  }
+
+  var draftRestored = loadDraft();
+  if(draftRestored){ document.getElementById("draftBanner").hidden = false; }
+  document.getElementById("clearDraftBtn").addEventListener("click", clearDraft);
+
+  // ---- actions -------------------------------------------------------
+  var statusMsg = document.getElementById("statusMsg");
+  function showStatus(text, ms){
+    statusMsg.textContent = text;
+    if(ms){ setTimeout(function(){ if(statusMsg.textContent === text) statusMsg.textContent = ""; }, ms); }
+  }
+
+  function onDownload(){
+    try{
+      var md = compileMarkdown();
+      var projectName = (state["proj_name"] || "без-названия").replace(/[^a-zA-Zа-яА-ЯёЁ0-9]+/g,"-");
+      var filename = "Бриф_" + projectName + "_" + today().split(".").join("-") + ".md";
+      var blob = new Blob([md], { type:"text/markdown;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = filename; a.style.display = "none";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      showStatus("Файл сохранён.", 3000);
+    }catch(err){
+      showStatus("Не получилось сохранить файл.", 4000);
+    }
+  }
+
+  async function onCopy(){
+    showStatus("Копирую…", 0);
+    var md;
+    try{ md = compileMarkdown(); }catch(err){ showStatus("Ошибка подготовки текста (" + (err && err.message ? err.message : "ошибка") + ").", 6000); return; }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(md);
+        showStatus("Бриф скопирован — вставьте его в письмо или сообщение.", 4000);
+        return;
+      }
+      throw new Error("no clipboard api");
+    }catch(e){
+      try{
+        var ta = document.createElement("textarea");
+        ta.value = md; ta.style.position = "fixed"; ta.style.left = "-9999px";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        showStatus("Бриф скопирован — вставьте его в письмо или сообщение.", 4000);
+      }catch(e2){
+        showStatus("Не получилось скопировать. Попробуйте «Скачать бриф (.md)».", 4000);
+      }
+    }
+  }
+
+  async function onSend(btn){
+    if(btn) btn.disabled = true;
+    showStatus("Отправляю бриф в Студию 12…", 0);
+
+    var md, projectName, contact, delegatedTitles, caption, filename;
+    try{
+      md = compileMarkdown();
+      projectName = (state["proj_name"] || "").trim() || "без названия";
+      contact = (state["proj_contact"] || "").trim() || "не указано";
+      delegatedTitles = [];
+      STEPS.forEach(function(sec){ if(sec.gate && state[sec.gate.id] === "studio") delegatedTitles.push(sec.title); });
+      caption = "Новый бриф — " + projectName + "\nКонтакт: " + contact;
+      if(delegatedTitles.length){ caption += "\nПоручено Студии: " + delegatedTitles.join(", "); }
+      if(caption.length > 1000){ caption = caption.slice(0, 1000); }
+      var fileSlug = projectName.replace(/[^a-zA-Zа-яА-ЯёЁ0-9]+/g,"-");
+      filename = "Бриф_" + fileSlug + "_" + today().split(".").join("-") + ".md";
+    }catch(err){
+      if(btn) btn.disabled = false;
+      showStatus("Ошибка подготовки текста (" + (err && err.message ? err.message : "ошибка") + ").", 6000);
+      return;
+    }
+
+    try{
+      var res = await fetch(BRIEF_API_URL, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ markdown:md, filename:filename, caption:caption })
+      });
+      var data = null;
+      try{ data = await res.json(); }catch(parseErr){ /* ignore, handled below */ }
+
+      if(res.ok && data && data.ok){
+        try{ localStorage.removeItem(DRAFT_KEY); }catch(clearErr){}
+        showStatus("Готово! Бриф отправлен. Можно закрыть страницу или заполнить новый.", 0);
+        if(btn){
+          btn.disabled = false;
+          btn.dataset.sent = "true";
+          btn.textContent = "Заполнить новый бриф";
+        }
+      } else {
+        throw new Error(data && data.description ? data.description : ("сервер ответил " + res.status));
+      }
+    }catch(err){
+      if(btn) btn.disabled = false;
+      showStatus("Не получилось отправить автоматически (" + (err && err.message ? err.message : "ошибка сети") + "). Нажмите «Скопировать бриф» или «Скачать бриф (.md)» и отправьте вручную в Telegram @" + STUDIO_TG_USERNAME + ".", 10000);
+    }
+  }
+
+  renderStep();
+
+})();
+</script>
+</body>
+</html>
